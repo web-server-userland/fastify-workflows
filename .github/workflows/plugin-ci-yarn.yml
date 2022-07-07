@@ -1,0 +1,113 @@
+name: Plugin CI With Yarn
+
+on:
+  workflow_call:
+    inputs:
+      lint:
+        description: 'set to true to run linting scripts.'
+        required: false
+        default: false
+        type: boolean
+      lint-node-version:
+        description: 'version of node to install for lint script.'
+        required: false
+        default: '16'
+        type: string
+      lint-script:
+        description: 'Yarn run lint script'
+        required: false
+        default: 'yarn run lint'
+        type: string
+      install-script:
+        description: 'Yarn run install script'
+        required: false
+        default: 'yarn install --ignore-scripts --frozen-lockfile'
+        type: string
+      test-script:
+        description: 'Yarn run test script'
+        required: false
+        default: 'yarn run test:ci'
+        type: string
+      coveralls:
+        description: 'enable coveralls'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  linter:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Skip lint
+        if: ${{ inputs.lint == false}}
+        run: exit 0
+
+      - name: Check out repo
+        if: ${{ inputs.lint == true}}
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        if: ${{ inputs.lint == true}}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.lint-node-version }}
+
+      - name: Install dependencies
+        if: ${{ inputs.lint == true}}
+        run: ${{ inputs.install-script }}
+
+      - name: Lint code
+        if: ${{ inputs.lint == true}}
+        run: ${{ inputs.lint-script }}
+
+  test:
+    name: Test
+    needs: linter
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Setup Yarn (Node Version ${{ matrix.node-version }})
+        uses: DerYeger/yarn-setup-action@master
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: ${{ inputs.install-script }}
+
+      - name: Run tests
+        run: ${{ inputs.test-script }}
+
+      - name: Coveralls Parallel
+        if: inputs.coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          flag-name: run-${{ matrix.os }}-${{ matrix.node-version }}
+          parallel: true
+
+  coveralls-finish:
+    name: Coveralls Finished Report
+    if: inputs.coveralls
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true
