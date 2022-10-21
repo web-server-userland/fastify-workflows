@@ -1,6 +1,6 @@
 {
-    "name": "@fastify-userland/workflows",
-    "version": "1.0.0",
+    "name": "@web-server-userland/fastify-workflows",
+    "version": "2.0.0",
     "description": "Reusable workflows for use in the Fastify library",
     "scripts": {},
     "keywords": [

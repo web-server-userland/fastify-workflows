@@ -1,4 +1,4 @@
-# @fastify-userland/workflows
+# @web-server-userland/fastify-workflows
 
 This is the github workflows for the fastify plugin community.
 
@@ -23,15 +23,15 @@ on:
 
 jobs:
   npm:
-    uses: fastify-userland/workflows/.github/workflows/plugin-ci-npm.yml@v1
+    uses: web-server-userland/fastify-workflows/.github/workflows/plugin-ci-npm.yml@v2
     with:
       lint: true
 
   yarn:
-    uses: fastify-userland/workflows/.github/workflows/plugin-ci-yarn.yml@v1
+    uses: web-server-userland/fastify-workflows/.github/workflows/plugin-ci-yarn.yml@v2
 
   pnpm:
-    uses: fastify-userland/workflows/.github/workflows/plugin-ci-pnpm.yml@v1
+    uses: web-server-userland/fastify-workflows/.github/workflows/plugin-ci-pnpm.yml@v2
 ```
 
 ### Inputs
